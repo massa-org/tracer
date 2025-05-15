@@ -1,3 +1,5 @@
+import 'package:tracer/trace_span.dart';
+
 import 'trace_entry.dart';
 
 /// end point for hanlding trace entries, where all logic must be implemented
@@ -56,14 +58,16 @@ class TraceCollectorPrinter implements TraceCollector {
   }
 
   String? formatSpanByFunctionName(TraceSpan? span) {
-    if (span == null) return '';
+    if (span == null) return null;
     final name = switch (span) {
-      TraceSpanSource(:final depth, :final trace) =>
+      TraceSpanSource(:final functionName) => functionName,
+      TraceSpanSourceStack(:final depth, :final trace) =>
         trace.toString().split('\n')[depth].split(RegExp('\\s+'))[1],
       TraceSpanNamed(:final name) => name,
+      TraceSpanRef() => '_',
     };
 
-    return '${formatSpan(span.parrent)} > $name';
+    return [formatSpanByFunctionName(span.parrent), name].nonNulls.join(' > ');
   }
 
   @override
@@ -72,7 +76,7 @@ class TraceCollectorPrinter implements TraceCollector {
       [
         formatTimestamp(entry.timestamp),
         entry.type.type,
-        formatSpan(entry.span),
+        formatSpanByFunctionName(entry.span),
         entry.message,
       ].nonNulls.join('\t'),
       entry.params?.toString(),

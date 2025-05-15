@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:tracer/trace_span.dart';
 
 /// represent type of tracing entry, basicly is log level
 class TraceEntryType {
@@ -38,36 +38,21 @@ class TraceEntryType {
 
   @override
   int get hashCode => Object.hash(runtimeType, type.hashCode);
-}
 
-sealed class TraceSpan {
-  factory TraceSpan.named(String name) = TraceSpanNamed;
-  factory TraceSpan.source(StackTrace trace, {int depth}) = TraceSpanSource;
+  String toJson() => type;
 
-  TraceSpan([TraceSpan? parrent])
-    : spanId = currentSpanId++,
-      parrent = parrent ?? TraceSpan.current;
+  factory TraceEntryType.fromJson(String type) => switch (type) {
+    "trace" => TraceEntryType.trace,
 
-  final TraceSpan? parrent;
-  final int spanId;
+    "debug" => TraceEntryType.debug,
+    "info" => TraceEntryType.info,
 
-  static int currentSpanId = 0;
-
-  static const Symbol zoneKey = #currentSpan;
-  static TraceSpan? get current => Zone.current[zoneKey];
-}
-
-class TraceSpanSource extends TraceSpan {
-  TraceSpanSource(this.trace, {this.depth = 0});
-
-  final int depth;
-  final StackTrace trace;
-}
-
-class TraceSpanNamed extends TraceSpan {
-  TraceSpanNamed(this.name);
-
-  final String name;
+    "warn" => TraceEntryType.warn,
+    "error" => TraceEntryType.error,
+    "fatal" => TraceEntryType.fatal,
+    "event" => TraceEntryType.event,
+    String type => TraceEntryType.custom(type, 0),
+  };
 }
 
 class TraceEntry {

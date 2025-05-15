@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:tracer/trace_span.dart';
+
 import 'trace_collector.dart';
 import 'trace_entry.dart';
 
@@ -50,7 +52,7 @@ abstract class TracerBase {
     final span =
         spanName != null
             ? TraceSpan.named(spanName)
-            : TraceSpan.source(StackTrace.current, depth: 1);
+            : TraceSpan.sourceStack(StackTrace.current, depth: 1);
     event('span_open', span: span);
 
     final result = runZoned(fn, zoneValues: {TraceSpan.zoneKey: span});
